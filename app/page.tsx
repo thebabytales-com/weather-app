@@ -35,30 +35,27 @@ export default function Home() {
   // AI 推荐状态
   const [aiResult, setAiResult] = useState<ProductAnalysis | null>(null)
 
-  // 模拟关键词搜索
+  // 关键词搜索（真实 API）
   const handleSearch = async () => {
     if (!keyword.trim()) return
     
     setIsLoading(true)
     
-    // 模拟 API 调用
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    const mockData: KeywordData = {
-      keyword: keyword,
-      searchVolume: Math.floor(Math.random() * 50000) + 5000,
-      competition: Math.floor(Math.random() * 100),
-      trend: Math.random() > 0.6 ? 'up' : Math.random() > 0.3 ? 'stable' : 'down',
-      relatedKeywords: [
-        `${keyword} for men`,
-        `${keyword} 2024`,
-        `best ${keyword}`,
-        `${keyword} reviews`
-      ]
+    try {
+      const response = await fetch(`/api/keyword/${encodeURIComponent(keyword)}`)
+      const result = await response.json()
+      
+      if (result.success) {
+        setSearchResult(result.data)
+      } else {
+        alert('搜索失败，请重试')
+      }
+    } catch (error) {
+      console.error('搜索失败:', error)
+      alert('搜索失败，请重试')
+    } finally {
+      setIsLoading(false)
     }
-    
-    setSearchResult(mockData)
-    setIsLoading(false)
   }
 
   // 计算利润
@@ -74,27 +71,32 @@ export default function Home() {
     }
   }
 
-  // AI 推荐分析
+  // AI 推荐（真实 API）
   const handleAIAnalysis = async () => {
     if (!keyword.trim()) return
     
     setIsLoading(true)
     
-    // 模拟 AI API 调用
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    const mockAIResult: ProductAnalysis = {
-      keyword: keyword,
-      score: Math.floor(Math.random() * 30) + 70,
-      opportunity: Math.random() > 0.5 ? 'high' : Math.random() > 0.3 ? 'medium' : 'low',
-      risk: Math.random() > 0.5 ? '竞争激烈，需差异化' : '市场较蓝海，适合入场',
-      recommendation: Math.random() > 0.5 
-        ? '建议入场，建议售价 $25-35，利润率可达 30%'
-        : '建议观望，关键词竞争激烈，建议寻找细分市场'
+    try {
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keyword })
+      })
+      
+      const result = await response.json()
+      
+      if (result.success) {
+        setAiResult(result.data)
+      } else {
+        alert('AI 分析失败，请重试')
+      }
+    } catch (error) {
+      console.error('AI 分析失败:', error)
+      alert('AI 分析失败，请重试')
+    } finally {
+      setIsLoading(false)
     }
-    
-    setAiResult(mockAIResult)
-    setIsLoading(false)
   }
 
   const profit = calculateProfit()
